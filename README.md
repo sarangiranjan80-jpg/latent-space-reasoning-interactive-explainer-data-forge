@@ -199,7 +199,7 @@ CITATIONS.md .
 Reproducing / running this artifact
 No build step, no dependencies, no server required.
 
-1. git clone - https://sarangiranjan80jpg.github.io/recurrent-latent-reasoning/
+1. git clone - https://github.com/sarangiranjan80-jpg/latent-space-reasoning-interactive-explainer-data-forge.git
 2. cd <repo-folder>
 3. open index.html # or double-click it, or
 
