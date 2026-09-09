@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Recurrent Latent-Space Reasoning — Interactive Explainer</title>
+<style>
+  :root{
+    --ink:#12151c;
+    --paper:#eef0e9;
+    --panel:#1b1f2a;
+    --line:#3a4152;
+    --amber:#e8a33d;
+    --amber-dim:#6b5223;
+    --good:#5fae72;
+    --bad:#c9645a;
+    --c0:#eef0e9; --c1:#3e6ae1; --c2:#c9645a; --c3:#5fae72;
+    font-family: "Iowan Old Style","Palatino Linotype",Georgia,serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ink);color:var(--paper);line-height:1.55;}
+  .wrap{max-width:880px;margin:0 auto;padding:48px 24px 96px;}
+  h1{font-size:1.9rem;font-weight:600;margin:0 0 6px;letter-spacing:.2px;}
+  .claim{
+    font-size:1.15rem;font-style:italic;color:var(--amber);
+    border-left:3px solid var(--amber);padding:10px 0 10px 18px;margin:18px 0 36px;
+  }
+  h2{font-size:1.25rem;margin:48px 0 12px;font-weight:600;}
+  p{font-size:1rem;max-width:66ch;}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:22px 24px;margin:18px 0;}
+  .row{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start;}
+  .col{flex:1 1 260px;}
+  .grid4{display:grid;grid-template-columns:repeat(4,26px);grid-template-rows:repeat(4,26px);gap:2px;margin:6px 0;}
+  .cell{border-radius:2px;}
+  .c0{background:var(--c0);} .c1{background:var(--c1);} .c2{background:var(--c2);} .c3{background:var(--c3);}
+  .cap{font-size:.78rem;color:#9aa1b2;margin-top:4px;font-family:ui-sans-serif,system-ui;}
+  .arrow{align-self:center;font-size:1.3rem;color:#9aa1b2;padding:0 4px;}
+  .controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:14px 0 4px;}
+  button.effort{
+    background:transparent;border:1px solid var(--line);color:var(--paper);
+    padding:7px 16px;border-radius:20px;font-family:ui-sans-serif,system-ui;font-size:.85rem;cursor:pointer;
+  }
+  button.effort.active{background:var(--amber);border-color:var(--amber);color:#1b1400;font-weight:600;}
+  input[type=range]{flex:1;min-width:160px;accent-color:var(--amber);}
+  .stat{font-family:ui-monospace,monospace;font-size:.95rem;}
+  .bars{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+  .barrow{display:flex;align-items:center;gap:8px;font-family:ui-monospace,monospace;font-size:.72rem;}
+  .barrow .label{width:120px;color:#9aa1b2;flex-shrink:0;}
+  .bartrack{flex:1;background:#0d1017;border-radius:3px;height:12px;overflow:hidden;}
+  .barfill{height:100%;background:var(--amber-dim);}
+  .barfill.correct{background:var(--good);}
+  .accbig{font-size:2.4rem;font-family:ui-monospace,monospace;color:var(--amber);}
+  .accgood{color:var(--good)!important;}
+  .badge{display:inline-block;font-size:.7rem;font-family:ui-sans-serif,system-ui;padding:2px 9px;border-radius:10px;margin-left:8px;}
+  .badge.live{background:#20321f;color:var(--good);}
+  .badge.illus{background:#332a1a;color:var(--amber);}
+  .cot pre{white-space:pre-wrap;font-size:.82rem;color:#c7ccd8;background:#0d1017;padding:14px;border-radius:4px;}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:8px;}
+  td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;font-family:ui-sans-serif,system-ui;}
+  a{color:var(--amber);}
+  .callout{border:1px solid var(--amber-dim);background:#241d10;padding:16px 18px;border-radius:6px;margin-top:14px;}
+  .foot{margin-top:60px;font-size:.8rem;color:#7a8194;font-family:ui-sans-serif,system-ui;border-top:1px solid var(--line);padding-top:18px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Recurrent Latent-Space Reasoning</h1>
+  <div class="claim">A model can improve an answer by repeatedly transforming a fixed-size hidden state a variable number of times — without ever converting an intermediate step into a word or token.</div>
+
+  <div class="panel" style="border-color:var(--amber-dim);">
+    <p class="cap" style="margin-bottom:6px;">HOW TO FALSIFY THIS CLAIM</p>
+    <p style="margin:0;">If this claim is wrong, accuracy below should <strong>not</strong> depend on the number of iterations — it should stay flat (near whatever a random guess would score) whether you set the dial to 0 or HIGH. Try it: set it to <strong>0 iterations</strong> first and note the accuracy, then jump to <strong>HIGH</strong>. If accuracy rises, the claim survives that test; if it doesn't move, the claim is false for this system.</p>
+  </div>
+
+  <p>Below is a small, <em>real</em> running model — not a scripted animation. It sees two demonstrations of an unknown grid transformation, then has to infer the rule and apply it to a new grid. It never writes down "I think the rule is a shift by (1,1)." It only ever holds a numeric belief over possible rules, and repeatedly sharpens that belief. Turn the reasoning effort up and down and watch it happen.</p>
+
+  <h2>1. What the model is shown</h2>
+  <div class="panel">
+    <div class="row" id="demoRow"></div>
+    <p class="cap" style="margin-top:14px;">Two input→output examples. The rule (a shift + a color swap) is never stated — only these paired grids.</p>
+  </div>
+
+  <h2>2. The model reasons — turn the dial</h2>
+  <div class="panel">
+    <div class="controls">
+      <button class="effort" data-n="0">0 iterations</button>
+      <button class="effort" data-n="1">LOW</button>
+      <button class="effort" data-n="4">MEDIUM</button>
+      <button class="effort" data-n="14">HIGH</button>
+    </div>
+    <div class="controls">
+      <span class="cap" style="width:110px;">exact: <span id="nval">0</span></span>
+      <input type="range" id="slider" min="0" max="20" value="0" step="1">
+    </div>
+
+    <div class="row" style="margin-top:18px;">
+      <div class="col">
+        <p class="cap" style="margin-bottom:2px;">LATENT BELIEF STATE (top hypotheses, never decoded to text)</p>
+        <div class="bars" id="bars"></div>
+      </div>
+      <div class="col" style="max-width:300px;">
+        <p class="cap" style="margin-bottom:2px;">APPLIED TO A NEW QUERY GRID <span class="badge live">live computation</span></p>
+        <div class="row" style="gap:14px;">
+          <div>
+            <div class="grid4" id="queryIn"></div>
+            <div class="cap">query input</div>
+          </div>
+          <div class="arrow">→</div>
+          <div>
+            <div class="grid4" id="queryPred"></div>
+            <div class="cap">model's answer</div>
+          </div>
+          <div>
+            <div class="grid4" id="queryTruth"></div>
+            <div class="cap">ground truth</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <span class="cap">cell-match accuracy</span><br>
+          <span class="accbig" id="acc">0%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>3. Compare: what verbal chain-of-thought would look like <span class="badge illus">illustrative, static — not generated live</span></h2>
+  <div class="panel cot">
+    <p>A token-based reasoner solving the same puzzle would narrate every hypothesis it tries, spending output tokens on each guess:</p>
+    <pre>Step 1: Comparing input/output grid 1... colors 1 and 2 seem swapped.
+Step 2: Checking grid 2 to confirm the color swap holds.
+Step 3: Looking at cell positions... pattern seems shifted.
+Step 4: Testing shift (1,0)... doesn't match all cells.
+Step 5: Testing shift (1,1)... matches both demonstrations.
+Step 6: Rule confirmed: shift (1,1) + swap colors 1↔2.
+Applying rule to query grid...</pre>
+    <p class="cap">Our latent model produces the same final answer without ever emitting this text — the belief bars above <em>are</em> the reasoning, held as numbers, not words.</p>
+  </div>
+
+  <h2>4. Where this shows up in BDH and BDH-CQ</h2>
+  <div class="panel">
+    <p><strong>BDH</strong> (Dragon Hatchling) gives a sequence model a persistent, synapse-level state: attention emerges from local neuron-to-neuron interactions on a sparse graph, with Hebbian-style updates that let recently co-active connections strengthen. That gives the architecture a fixed-size, continuously-updatable state instead of a growing token cache.</p>
+    <p><strong>BDH-CQ</strong> is what happens when that kind of state is used for two separate jobs: demonstrations continuously update a <em>contextual memory</em> (this is what plays the role of our two demo grids above — adapting the system without changing its trained weights), and a separate <em>latent workspace</em> is transformed repeatedly to solve the query — exactly the iteration-count dial you just used, generalized to a much higher-dimensional space.</p>
+    <table>
+      <tr><th>Reported result</th><th>Value</th><th>Evidence type</th></tr>
+      <tr><td>Model size</td><td>150M parameters</td><td>Developer-reported</td></tr>
+      <tr><td>ARC-AGI-1 public eval</td><td>29.5% pass@2 / 24.25% pass@1</td><td>Developer-reported</td></tr>
+      <tr><td>Inference cost</td><td>~$0.00070/task</td><td>Developer-reported</td></tr>
+      <tr><td>vs. GPT-5.6 Luna (low effort)</td><td>34.2% pass@2, ~11× the cost</td><td>Third-party benchmark + Pathway's cost calc</td></tr>
+      <tr><td>Public ARC-AGI-1 reproduction</td><td>Independently reproduced</td><td>Independent evaluation report</td></tr>
+    </table>
+    <div class="callout">
+      <strong>Limitation, stated plainly:</strong> BDH-CQ's own controlled studies show robust extrapolation on propagation, copying, and dense mappings — but ordering, nesting, conditional rule selection, and composing multiple transformations remain difficult. Our toy demo above uses a small, disambiguated hypothesis space precisely so it always converges; the real system does not always converge this cleanly.
+    </div>
+  </div>
+
+  <h2>5. What this doesn't prove</h2>
+  <div class="panel">
+    <p><strong>More latent iterations is not the same as a bigger or smarter model.</strong> Turning the dial up here doesn't add parameters or knowledge — it only gives the existing belief state more passes to integrate the same evidence. And in BDH-CQ, this recurrent state is <em>not</em> a weight update: nothing about the model's trained parameters changes when it adapts to new demonstrations, which is a genuinely different mechanism from architectures that fine-tune or backprop at test time.</p>
+  </div>
+
+  <div class="foot">
+    This page is an original toy model built for teaching purposes. It is <strong>not</strong> BDH-CQ, does not use BDH-CQ's weights or code, and does not reproduce BDH-CQ's reported numbers — the table above reproduces published figures for reference only. Sources: <a href="https://arxiv.org/abs/2608.09888" target="_blank">BDH-CQ paper (arXiv:2608.09888)</a>, <a href="https://arxiv.org/abs/2509.26507" target="_blank">Dragon Hatchling paper (arXiv:2509.26507)</a>, <a href="https://pathway.com/research/introducing-bdh-cq" target="_blank">Pathway's BDH-CQ writeup</a>.
+  </div>
+
+</div>
+
+<script>
+const COLORS = ['c0','c1','c2','c3'];
+const N = 4;
+
+function randGrid(seed){
+  let s = seed;
+  function rnd(){ s = (s*1103515245+12345)&0x7fffffff; return s/0x7fffffff; }
+  const g = [];
+  for(let i=0;i<N*N;i++) g.push(Math.floor(rnd()*4));
+  return g;
+}
+
+// true rule for this puzzle instance
+const TRUE_DX = 1, TRUE_DY = 1;
+const TRUE_SWAP = [0,2,1,3]; // swap colors 1 and 2
+
+function applyRule(grid, dx, dy, perm){
+  const out = new Array(N*N).fill(0);
+  for(let y=0;y<N;y++){
+    for(let x=0;x<N;x++){
+      const sx = (x - dx + N) % N;
+      const sy = (y - dy + N) % N;
+      const val = grid[sy*N+sx];
+      out[y*N+x] = perm[val];
+    }
+  }
+  return out;
+}
+
+const demoAIn = randGrid(7), demoAOut = applyRule(demoAIn, TRUE_DX, TRUE_DY, TRUE_SWAP);
+const demoBIn = randGrid(19), demoBOut = applyRule(demoBIn, TRUE_DX, TRUE_DY, TRUE_SWAP);
+const queryIn = randGrid(3), queryTruth = applyRule(queryIn, TRUE_DX, TRUE_DY, TRUE_SWAP);
+
+// hypothesis space: 9 shifts x 6 color perms = 54 hypotheses
+const SHIFTS = [];
+for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) SHIFTS.push([dx,dy]);
+const PERMS = [
+  [0,1,2,3], // identity
+  [1,0,2,3], // swap 0,1
+  [2,1,0,3], // swap 0,2
+  [3,1,2,0], // swap 0,3
+  [0,2,1,3], // swap 1,2 <-- true one
+  [0,1,3,2], // swap 2,3
+];
+const HYPS = [];
+SHIFTS.forEach(([dx,dy])=>{
+  PERMS.forEach((perm,pi)=>{
+    HYPS.push({dx,dy,perm,isTrue: dx===TRUE_DX && dy===TRUE_DY && pi===4});
+  });
+});
+
+function score(hyp){
+  const predA = applyRule(demoAIn, hyp.dx, hyp.dy, hyp.perm);
+  const predB = applyRule(demoBIn, hyp.dx, hyp.dy, hyp.perm);
+  let match=0;
+  for(let i=0;i<N*N;i++){
+    if(predA[i]===demoAOut[i]) match++;
+    if(predB[i]===demoBOut[i]) match++;
+  }
+  return match/(2*N*N); // 0..1
+}
+HYPS.forEach(h=> h.evidence = score(h));
+
+function renderGrid(el, grid){
+  el.innerHTML='';
+  grid.forEach(v=>{
+    const d=document.createElement('div');
+    d.className='cell '+COLORS[v];
+    el.appendChild(d);
+  });
+}
+
+function softmaxDistribution(n){
+  // logits accumulate linearly with iteration count -> distribution sharpens as n grows
+  const logits = HYPS.map(h => n * h.evidence * 6); // scale factor tuned for a smooth curve
+  const max = Math.max(...logits);
+  const exps = logits.map(l => Math.exp(l-max));
+  const sum = exps.reduce((a,b)=>a+b,0);
+  return exps.map(e=>e/sum);
+}
+
+function update(n){
+  document.getElementById('nval').textContent = n;
+  document.getElementById('slider').value = n;
+
+  const probs = softmaxDistribution(n);
+  const ranked = HYPS.map((h,i)=>({...h, p:probs[i]})).sort((a,b)=>b.p-a.p).slice(0,5);
+
+  const barsEl = document.getElementById('bars');
+  barsEl.innerHTML='';
+  ranked.forEach(h=>{
+    const row=document.createElement('div');
+    row.className='barrow';
+    const label = `dx${h.dx>=0?'+':''}${h.dx} dy${h.dy>=0?'+':''}${h.dy} p${h.perm.join('')}`;
+    row.innerHTML = `<span class="label">${label}</span>
+      <div class="bartrack"><div class="barfill${h.isTrue?' correct':''}" style="width:${(h.p*100).toFixed(1)}%"></div></div>
+      <span style="width:44px;text-align:right;">${(h.p*100).toFixed(0)}%</span>`;
+    barsEl.appendChild(row);
+  });
+
+  // best hypothesis -> apply to query
+  const best = HYPS.reduce((a,b,i)=> probs[i] > probs[HYPS.indexOf(a)] ? b : a, HYPS[0]);
+  const bestIdx = probs.indexOf(Math.max(...probs));
+  const bestHyp = HYPS[bestIdx];
+  const pred = applyRule(queryIn, bestHyp.dx, bestHyp.dy, bestHyp.perm);
+
+  renderGrid(document.getElementById('queryIn'), queryIn);
+  renderGrid(document.getElementById('queryPred'), pred);
+  renderGrid(document.getElementById('queryTruth'), queryTruth);
+
+  let match=0;
+  for(let i=0;i<N*N;i++) if(pred[i]===queryTruth[i]) match++;
+  const acc = Math.round(100*match/(N*N));
+  const accEl = document.getElementById('acc');
+  accEl.textContent = acc+'%';
+  accEl.className = 'accbig' + (acc===100 ? ' accgood' : '');
+}
+
+// demo panel
+const demoRow = document.getElementById('demoRow');
+function pair(label, inG, outG){
+  const wrap = document.createElement('div');
+  wrap.className='col';
+  wrap.style.flex='0 0 auto';
+  wrap.innerHTML = `<p class="cap">${label}</p>`;
+  const inner = document.createElement('div');
+  inner.className='row';
+  inner.style.gap='10px';
+  const a=document.createElement('div'); const g1=document.createElement('div'); g1.className='grid4'; a.appendChild(g1);
+  const arrow=document.createElement('div'); arrow.className='arrow'; arrow.textContent='→';
+  const b=document.createElement('div'); const g2=document.createElement('div'); g2.className='grid4'; b.appendChild(g2);
+  inner.appendChild(a); inner.appendChild(arrow); inner.appendChild(b);
+  wrap.appendChild(inner);
+  demoRow.appendChild(wrap);
+  renderGrid(g1, inG); renderGrid(g2, outG);
+}
+pair('demonstration 1', demoAIn, demoAOut);
+pair('demonstration 2', demoBIn, demoBOut);
+
+document.querySelectorAll('button.effort').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('button.effort').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    update(parseInt(btn.dataset.n));
+  });
+});
+document.getElementById('slider').addEventListener('input', e=>{
+  document.querySelectorAll('button.effort').forEach(b=>b.classList.remove('active'));
+  update(parseInt(e.target.value));
+});
+
+update(0);
+</script>
+</body>
+</html>
+
