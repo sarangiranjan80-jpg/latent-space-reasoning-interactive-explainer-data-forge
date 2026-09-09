@@ -4,8 +4,7 @@ Explainer
 DataForge 2026 × Pathway × rime — Pathway
 Track submission
 
-LIVE ARTIFACT-https://sarangiranjan80-jpg.github.io/recurrent-latent-reasoning/
-
+LIVE ARTIFACT-https://sarangiranjan80-jpg.github.io/latent-space-reasoning-interactive-explainer-data-forge/
  
 
 The claim
