@@ -1,0 +1,82 @@
+Primary Paper Citations —
+Recurrent Latent-Space
+Reasoning
+
+Pulled directly from the BDH-CQ paper's own
+reference list (arXiv:2608.09888), verified against
+arXiv, not from secondhand summaries. All fall within
+2022–2026 as required.
+
+1. Hao, S., Sukhbaatar, S., Su, D., et al.(2024)
+"Training Large Language Models to Reason in a
+Continuous Latent Space" (introduces "Coconut")
+arXiv:2412.06769 — https://arxiv.org/abs/2412.06769
+
+Where to cite it: beside any claim that a Transformer-
+based LLM can be trained to replace verbal chain-of-
+thought steps with continuous hidden-state feedback.
+
+This is the paper BDH-CQ itself cites as the seminal
+demonstration of continuous hidden-state feedback in
+an autoregressive model, and BDH-CQ explicitly
+positions itself as exploring a different regime from
+Coconut's staged-curriculum approach.
+
+2. Geiping, J., McLeish, S., Jain, N., et al.
+(2025)
+"Scaling up Test-Time Compute with Latent
+Reasoning: A Recurrent Depth Approach"
+arXiv:2502.05171 — https://arxiv.org/abs/2502.05171
+
+Where to cite it: beside any claim about recurrent-
+depth models repeatedly applying a shared block to a
+
+latent state to improve reasoning with additional
+iterations — i.e., the "turn the effort dial" mechanic
+your demo visualizes. BDH-CQ cites this as an
+example of recurrent-depth architectures used
+primarily for parameter-efficient test-time compute
+
+scaling, distinct from BDH-CQ's demonstration-
+dependent learning focus.
+
+3. Saunshi, N., Dikkala, N., Li, Z., Kumar, S.,
+Reddi, S.J.(2025)
+"Reasoning with Latent Thoughts: On the Power of
+Looped Transformers"
+arXiv:2502.17416 — https://arxiv.org/abs/2502.17416
+Where to cite it: beside any theoretical claim about
+why iterative latent computation can substitute for
+depth/parameters — this paper provides theoretical
+grounding for looped/recurrent architectures
+simulating bounded chain-of-thought computation
+without per-step parameters.
+
+Supporting primary sources
+(architecture-specific, not part of
+the "3 required" but needed for the
+BDH module)
+Kosowski, A., Uznański, P., Chorowski, J.,
+Stamirowska, Z., Bartoszkiewicz, M. (2025). "The
+Dragon Hatchling: The Missing Link between the
+Transformer and Models of the Brain."
+arXiv:2509.26507 —https://arxiv.org/abs/2509.26507Engdahl, B., Kosowski, A., Chorowski, J., et al.
+(2026). "BDH-CQ: In-Context Learning with
+Recurrent Latent Reasoning." arXiv:2608.09888
+— https://arxiv.org/abs/2608.09888Pathway Research (2026). "Reasoning at aFraction of the  Compute" (BDH-CQannouncement).
+https://pathway.com/research/introducing-bdh-
+cq
+
+Evidence-labeling note (important
+— verify before submitting)
+The BDH-CQ paper's "independent evaluation"
+(Remigiusz Kinas, 2026; Richard Zhong, 2026) was
+
+conducted by co-authors of the BDH-CQ paper
+itself, affiliated with Bielik AI and New York University
+respectively — it is a documented black-box audit
+without access to model weights, but it is not a fully
+external third-party reproduction. Label it precisely
+as "a black-box audit by co-authors from partner
+institutions," not simply "independent evaluation," or
+you risk exactly the evidence-mislabeling the rubric
