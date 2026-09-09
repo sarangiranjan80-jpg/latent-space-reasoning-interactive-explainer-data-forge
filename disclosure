@@ -1,0 +1,144 @@
+AI Assistance, Code, Data,
+and License Disclosure
+Team: root16 — DataForge 2026 × Pathway × rime,
+Pathway Track
+Live artifact: https://sarangiranjan80-
+jpg.github.io/recurrent-latent-reasoning/
+AI assistance used
+Claude (Anthropic) was used to:
+Draft the initial interactive HTML/CSS/JS
+demo ( index.html ) implementing a toy
+recurrent-latent-reasoning algorithm (iterative
+Bayesian-style hypothesis refinement over a
+small grid-transformation puzzle).
+Retrieve and verify primary-source details
+from the BDH and BDH-CQ arXiv papers
+directly (arXiv:2509.26507,
+arXiv:2608.09888), rather than from memory
+or secondhand blog summaries.
+
+No additional AI tools were used beyond Claude
+(Anthropic) as described above.
+
+What a human on the team verified
+and can defend
+The toy algorithm's logic (hypothesis-space
+construction, softmax-sharpening update rule)
+was reviewed by team root16 (Swapnil Sarkar,
+Swarnabhra Mitra, Mainak Roy), who can explain
+live why accuracy should rise as iteration count
+increases.
+The BDH-CQ numbers (150M parameters; 29.5%
+pass@2 / 24.25% pass@1 on public ARC-AGI-1;
+~$0.00070/task; LOW/MEDIUM/HIGH effort
+results of 21% / 27% / 29.5% pass@2) were
+verified against the primary paper by team root16
+(Swapnil Sarkar, Swarnabhra Mitra, Mainak Roy).
+The three supporting citations (Hao et al. 2024,
+Geiping et al. 2025, Saunshi et al. 2025) were
+verified against arXiv directly by team root16
+(Swapnil Sarkar, Swarnabhra Mitra, Mainak Roy).
+What is real vs. illustrative in the
+artifact
+Live/real: the hypothesis-scoring and iterative
+belief-sharpening computation in index.html
+
+runs in the browser on every interaction — it is not
+a scripted animation. Moving the effort slider
+genuinely recomputes the model's belief
+distribution and re-applies it to the query grid.
+Illustrative, clearly labeled in-page: the "verbal
+
+chain-of-thought" text panel is a static, hand-
+written illustration of what a token-based
+
+reasoner's trace would look like on the same task
+— it is not generated live and is labeled as such
+directly in the UI.
+Not included / explicitly disclaimed: this project
+does not run, fine-tune, or reproduce the actual
+BDH-CQ model or checkpoint. All BDH-CQ
+numbers shown are reference values taken from
+the published paper, displayed for comparison —
+never presented as live output of our toy model.
+Code, data, and asset sources
+Item Source License
+
+index.html
+demo
+
+Original code, AI-
+assisted (Claude),
+
+team-reviewed by
+root16
+
+MIT (see
+LICENSE )
+
+Item Source License
+
+Puzzle-grid
+generation
+logic
+
+Original (simple
+
+linear-
+congruential
+
+PRNG +
+deterministic grid
+transform),
+written for this
+project
+
+MIT (see
+LICENSE )
+
+Fonts
+
+System font stack
+only (no external
+font files used)
+
+N/A
+
+BDH-CQ
+reference
+numbers
+
+Engdahl et al.,
+2026,
+arXiv:2608.09888
+
+Reproduced
+
+under fair-
+use citation
+
+for
+educational
+commentary;
+not
+redistributing
+paper text
+verbatim
+
+BDH
+architecture
+description
+
+Kosowski et al.,
+2025,
+arXiv:2509.26507
+
+Same as
+above
+
+Forks / reused components
+No forked code was used; index.html was written
+from scratch for this submission.
+
+Mentorship disclosure
+No external mentorship was used.
